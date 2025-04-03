@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cryptocurrency Price Prediction</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 50px;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      display: none;
+    }
+    .loading {
+      color: blue;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>  
+<body>
+
+  <h1>Cryptocurrency Price Prediction</h1>
+
+  <form id="crypto-form">
+    <label for="crypto-symbol">Enter cryptocurrency symbol (e.g., BTC-USD): </label>
+    <input type="text" id="crypto-symbol" name="symbol" required>
+    <button type="submit">Predict</button>
+  </form>
+
+  <div id="loading" class="loading" style="display: none;">⏳ Loading...</div>
+
+  <div id="result">
+    <p><strong>Today's Price:</strong> <span id="actual-price"></span></p>
+    <p><strong>Predicted Price for Today:</strong> <span id="predicted-today"></span></p>
+    <p><strong>Predicted Price for Tomorrow:</strong> <span id="predicted-tomorrow"></span></p>
+    <p><strong>Price Trend:</strong> <span id="price-trend"></span></p>
+  </div>
+
+  <p id="error-message" class="error"></p>
+
+  <script>
+    document.getElementById('crypto-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const symbol = document.getElementById('crypto-symbol').value.trim();
+      const loadingText = document.getElementById('loading');
+      const resultDiv = document.getElementById('result');
+      const errorMessage = document.getElementById('error-message');
+
+      if (!symbol) {
+        errorMessage.textContent = "⚠️ Please enter a cryptocurrency symbol!";
+        return;
+      }
+
+      errorMessage.textContent = "";
+      resultDiv.style.display = "none";
+      loadingText.style.display = "block";
+
+      try {
+        const response = await fetch('http://127.0.0.1:5000/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbol })
+        });
+
+        const result = await response.json();
+        loadingText.style.display = "none";
+
+        if (response.ok) {
+          document.getElementById('actual-price').textContent = `$${result.actual_today.toFixed(2)}`;
+          document.getElementById('predicted-today').textContent = `$${result.predicted_today.toFixed(2)}`;
+          document.getElementById('predicted-tomorrow').textContent = `$${result.predicted_tomorrow.toFixed(2)}`;
+          document.getElementById('price-trend').textContent = result.price_trend === "UP" ? "📈 UP" : "📉 DOWN";
+
+          resultDiv.style.display = "block";
+        } else {
+          throw new Error(result.error || "Something went wrong!");
+        }
+      } catch (error) {
+        loadingText.style.display = "none";
+        errorMessage.textContent = `⚠️ ${error.message}`;
+      }
+    });
+  </script>
+
+</body>
+</html>

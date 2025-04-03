@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Price Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="bd">
+        <header>
+            <div class="navbar">Cryptocurrency Price Prediction</div>
+        </header>
+
+        <main>
+            <section class="section1">
+                <div class="box">
+                    <form id="predictForm">
+                        <label for="cryptoSearch">Enter Cryptocurrency Symbol:</label>
+                        <input type="text" id="cryptoSearch" placeholder="e.g., BTC, ETH, DOGE" required>
+                        <br>
+                        <div class="btn">
+                            <button type="submit">Search</button>
+                        </div>
+                        <p class="output">Trend: <span id="predictionResult">-</span></p>
+                        <p class="output loutput">Current Price: <span id="predictedPrice">$0</span></p>
+                    </form>
+                    <p class="note">
+                        Note: The information provided on this website, including cryptocurrency price predictions, is for informational and educational purposes only.
+                        The cryptocurrency market is highly volatile and subject to rapid fluctuations.
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer">© 2025 Crypto Price Prediction</div>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById("predictForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const cryptoSymbol = document.getElementById("cryptoSearch").value.trim().toUpperCase();
+
+            if (!cryptoSymbol) {
+                alert("Please enter a cryptocurrency symbol.");
+                return;
+            }
+
+            fetch(`http://localhost:5000/predict?symbol=${cryptoSymbol}-USD`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                        return;
+                    }
+
+                    const actualPrice = data.actual_today.toFixed(2);
+                    const trend = data.trend === "UP" ? "↑ Increase" : "↓ Decrease";
+
+                    document.getElementById("predictionResult").textContent = trend;
+                    document.getElementById("predictionResult").className = data.trend === "UP" ? "green" : "red";
+                    document.getElementById("predictedPrice").textContent = `$${actualPrice}`;
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    alert("Failed to fetch data. Please try again.");
+                });
+        });
+    </script>
+</body>
+</html>
